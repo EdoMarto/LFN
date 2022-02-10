@@ -13,7 +13,7 @@ import itertools
 import ssl
 
 
-def ComputeGraph():
+def ComputeGraph(): 
     # Import data for airports
     airportJsonData = importAirportDataFromJson()
 
