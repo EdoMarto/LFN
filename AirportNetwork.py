@@ -20,7 +20,7 @@ def ComputeGraph():
     # We select only the columns we are interested in
     airportDataFrame = pd.DataFrame.from_records(airportJsonData, columns=['city_code', 'country_code','name','code'])
     
-    europeCountries = ["BE","BG","CZ","DK","DE","EE","IE","EL","ES","FR","HR","IT","CY","LV","LT","LU","HU","MT","NL","AT","PL","PT","RO","SI","SK","FI","SE"]
+    europeCountries = ["BE","BG","CZ","DK","DE","EE","IE","GR","ES","FR","HR","IT","CY","LV","LT","LU","HU","MT","NL","AT","PL","PT","RO","SI","SK","FI","SE"]
 
     europeAirportDataFrame = pd.DataFrame()
 

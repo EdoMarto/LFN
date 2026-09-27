@@ -1,37 +1,44 @@
-## Learning From Networks Project: A Case of Study on an Airport Network
+# Airport Network Analysis – Learning From Networks
 
-### CODE:
-The code is divided into functions. 
+Graph-mining project for the *Learning From Networks* course (MSc Computer Engineering, University of Padova).
+It builds the European air-route network from live flight data and compares **exact vs. approximate
+algorithms** for node centrality and clustering, measuring both accuracy and running time.
 
-Utility functions:
-- ComputeGraph(): it's the main function that parse the dataset, call all other functions and set the visualization of the results;
-- GraphDrawing(routes, graph): it allows us to visualize the network; 
-- importRoutesDataFromJson(): it calls the API to download the routes data from the site;
-- importAirportDataFromJson(): it calls the API to download the airports data from the site.  
+## What it does
+1. Downloads airports and routes from the [Travelpayouts data API](https://support.travelpayouts.com/hc/en-us/articles/203956163)
+   and builds an undirected graph (airports = nodes, routes = edges) restricted to EU countries.
+2. Computes the most central airports with exact algorithms (NetworkX) and with randomized approximations
+   whose sample size is derived from theoretical error bounds (ε, δ):
 
-Feature functions:
-- DegreeCentrality(graph)
-- ClosenessCentrality (graph)
-- ApproximateClosenessCentrality(graph)
-- BetweennessCentrality(graph)
-- ApproximateBetweennessCentrality(graph)
-- LocalClusteringCoefficent(graph)
-- ApproximateLocalClusteringCoefficent(graph,k)
-- SubGraphWithTopNodes(graph, centrality, n)
+| Metric | Exact | Approximate |
+|---|---|---|
+| Degree centrality | ✔ | – |
+| Closeness centrality | ✔ | Eppstein–Wang sampling (own implementation) |
+| Betweenness centrality | ✔ | Sampling with *k* derived from the graph diameter |
+| Local clustering coefficient | ✔ | Randomized permutation-based estimator (own implementation) |
 
-In each function there are some commented lines. They concern print or code that allow us to visualize in a better way the results (e.g. zoom of histogram). 
-If necessary, they can be decommented.
+3. Plots the network, the metric distributions and the sub-graph of the top-*n* airports for each metric.
 
-### EXECUTION:
-To execute the application, it's possible:
-- Run the code from command prompt. You can enter in the file folder and execute the "phyton AirportNetwork.py" command.
-- Run the code from python IDE.
+## Running it
+```bash
+pip install -r requirements.txt
+python AirportNetwork.py
+```
+The analysis runs on the European network by default. To analyse the whole world, follow the comment in
+`ComputeGraph()` and use all airports instead of the EU filter.
 
-### EUROPE OR WORLD:
-The code is setted to analyse the European network. 
-In order to consider the whole World graph, you can just uncomment the lines 33-34 and comment the 'for' loop in lines 28-30 (this loop select only airports in european countries).
+Some lines in each function are commented out; uncomment them for extra prints and zoomed plots.
 
+## Code structure
+- `ComputeGraph()`: entry point; loads data, builds the graph, runs every metric.
+- `importAirportDataFromJson()`, `importRoutesDataFromJson()`: data download.
+- `DegreeCentrality`, `ClosenessCentrality`, `ApproximateClosenessCentrality`, `BetweennessCentrality`,
+  `ApproximateBetweennessCentrality`, `LocalClusteringCoefficent`, `ApproximateLocalClusteringCoefficent`: metrics.
+- `SubGraphWithTopNodes(graph, centrality, n)`, `GraphDrawing(routes, graph)`: visualisation.
 
+## Tech stack
+Python · NetworkX · pandas · Matplotlib
 
-
-
+## Authors
+Edoardo Martorelli ([@EdoMarto](https://github.com/EdoMarto)) ·
+[@FeVe98](https://github.com/FeVe98) · [@filo1110](https://github.com/filo1110)
