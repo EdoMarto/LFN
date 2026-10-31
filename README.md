@@ -1,5 +1,10 @@
 # Airport Network Analysis (Learning From Networks)
 
+![Python](https://img.shields.io/badge/python-3.10+-blue)
+![NetworkX](https://img.shields.io/badge/NetworkX-graph%20mining-orange)
+![Last commit](https://img.shields.io/github/last-commit/EdoMarto/LFN)
+![Stars](https://img.shields.io/github/stars/EdoMarto/LFN)
+
 A graph mining project for the *Learning From Networks* course (MSc Computer Engineering, University of
 Padova). It builds the European air route network from live flight data and compares exact against
 approximate algorithms for node centrality and clustering, looking at both how accurate they are and how
