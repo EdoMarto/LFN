@@ -1,6 +1,5 @@
 import json
 import urllib.request
-from os import system
 import time
 import math
 
@@ -9,8 +8,11 @@ import networkx as nx
 import pandas as pd
 import random
 from random import randrange
-import itertools
 import ssl
+
+# Seed for the random based approximate algorithms, so that results are reproducible.
+# Set to None to get a different random behaviour on each run.
+RANDOM_SEED = 42
 
 
 def ComputeGraph(): 
@@ -40,9 +42,6 @@ def ComputeGraph():
 
     # We select only the columns we are interested in
     europeRoutesDataFrame = pd.DataFrame.from_records(routesJsonData, columns=['departure_airport_iata', 'arrival_airport_iata'])
-
-    # Additional column for the flight between two nodes
-    europeRoutesDataFrame['flights'] = len(routesJsonData[0]["planes"])
 
     # filtered routes for origin and destination airports within EU if you don't select the entire world
     europeanRoutesDataFrame = europeRoutesDataFrame.loc[(europeRoutesDataFrame['departure_airport_iata'].isin(europeAirportCodes)) & (europeRoutesDataFrame['arrival_airport_iata'].isin(europeAirportCodes))]
@@ -190,9 +189,10 @@ def ApproximateClosenessCentrality(graph):
     nodesList = []
     n_nodes = graph.number_of_nodes()
     
-    # Finding the lower bound k for which we have great approximation
-    lowerLimitK = math.ceil((1/(2*pow(epsilon, 2)))*math.log((2*n_nodes)/sigma,10)*pow(n_nodes/(n_nodes-1), 2))
-    print("Selected k for ApproximateClosenessCentrality: " + str(lowerLimitK))    
+    # Finding the lower bound k for which we have great approximation.
+    # The Eppstein-Wang bound uses the natural logarithm.
+    lowerLimitK = math.ceil((1/(2*pow(epsilon, 2)))*math.log((2*n_nodes)/sigma)*pow(n_nodes/(n_nodes-1), 2))
+    print("Selected k for ApproximateClosenessCentrality: " + str(lowerLimitK))
 
     # Our implementation of the Eppstein-Wang algorithm
     for node in graph.nodes:
@@ -200,6 +200,9 @@ def ApproximateClosenessCentrality(graph):
 
     # Counting the amount of time needed
     startTime = time.time()
+
+    # Seed the generator so the sampled sources are reproducible
+    random.seed(RANDOM_SEED)
 
     nodesDictionary = dict.fromkeys(nodesList, 0)
 
@@ -264,14 +267,18 @@ def BetweennessCentrality(graph):
 def ApproximateBetweennessCentrality(graph):    
     # Compute the needed parameters
     diameter = nx.algorithms.distance_measures.diameter(graph)
+    n_nodes = graph.number_of_nodes()
 
     # Values found with different experiments
     epsilon = 0.2
     sigma = 0.01
 
-    # Finding the lower bound k for which we have great approximation
-    lowerLimitK = math.ceil((2/pow(epsilon, 2))*(int(math.log(diameter-2,2))+math.log(1/sigma)))
-    print("Selected k for ApproximateBetweennessCentrality: " + str(lowerLimitK))    
+    # Finding the lower bound k for which we have great approximation.
+    # Guard the logarithm against small diameters (diameter - 2 could be <= 0).
+    lowerLimitK = math.ceil((2/pow(epsilon, 2))*(int(math.log(max(diameter-2, 2),2))+math.log(1/sigma)))
+    # k cannot exceed the number of nodes, otherwise betweenness_centrality would raise.
+    lowerLimitK = min(lowerLimitK, n_nodes)
+    print("Selected k for ApproximateBetweennessCentrality: " + str(lowerLimitK))
 
     # Counting the amount of time needed
     startTime = time.time()
@@ -342,6 +349,9 @@ def LocalClusteringCoefficent(graph):
 def ApproximateLocalClusteringCoefficent(graph,k):
     # Counting the amount of time needed
     startTime = time.time()
+
+    # Seed the generator so the random permutations are reproducible
+    random.seed(RANDOM_SEED)
 
     nodeList = nx.nodes(graph)
     numberOfNodes = len(nodeList)
@@ -429,9 +439,7 @@ def SubGraphWithTopNodes(graph, centrality, n):
 
             for i in range(len(nodes_in_path)-1):
                 newGraph.add_node(nodes_in_path[i])
-
-                if(i!=len(nodes_in_path)):
-                    newGraph.add_edge(nodes_in_path[i],nodes_in_path[i+1])
+                newGraph.add_edge(nodes_in_path[i],nodes_in_path[i+1])
 
     nx.draw(newGraph, with_labels = True)
     plt.show()
@@ -440,10 +448,14 @@ def SubGraphWithTopNodes(graph, centrality, n):
 
 
 def importRoutesDataFromJson():
-    url = "http://api.travelpayouts.com/data/routes.json"
+    url = "https://api.travelpayouts.com/data/routes.json"
+    ctx = ssl.create_default_context()
 
-    with urllib.request.urlopen(url) as url:
-        data = json.loads(url.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(url, context=ctx, timeout=30) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except Exception as error:
+        raise RuntimeError("Could not download routes data from " + url + ": " + str(error))
 
     return data
 
@@ -451,9 +463,13 @@ def importRoutesDataFromJson():
 
 def importAirportDataFromJson():
     url = 'https://api.travelpayouts.com/data/en/airports.json'
-    ctx = ssl._create_unverified_context()
-    with urllib.request.urlopen(url, context=ctx) as url:
-        airport_json = json.loads(url.read().decode("utf-8"))
+    ctx = ssl.create_default_context()
+
+    try:
+        with urllib.request.urlopen(url, context=ctx, timeout=30) as response:
+            airport_json = json.loads(response.read().decode("utf-8"))
+    except Exception as error:
+        raise RuntimeError("Could not download airport data from " + url + ": " + str(error))
 
     return airport_json
 
