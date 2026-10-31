@@ -6,7 +6,7 @@
 ![Stars](https://img.shields.io/github/stars/EdoMarto/LFN)
 
 A graph mining project for the *Learning From Networks* course (MSc Computer Engineering, University of
-Padova). It builds the European air route network from live flight data and compares exact against
+Padua). It builds the European air route network from live flight data and compares exact against
 approximate algorithms for node centrality and clustering, looking at both how accurate they are and how
 long they take.
 
