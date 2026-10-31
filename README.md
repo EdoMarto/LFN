@@ -7,8 +7,7 @@
 
 A graph mining project for the *Learning From Networks* course (MSc Computer Engineering, University of
 Padua). It builds the European air route network from live flight data and compares exact against
-approximate algorithms for node centrality and clustering, looking at both how accurate they are and how
-long they take.
+approximate algorithms for node centrality and clustering, looking at both how accurate they are and how long they take.
 
 ## What it does
 
